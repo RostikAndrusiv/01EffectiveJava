@@ -1,11 +1,13 @@
 package org.rostik.andrusiv.lfu;
 
-import junit.framework.TestCase;
-import org.junit.Before;
+import org.junit.Test;
 import org.rostik.andrusiv.model.Entity;
 
-public class LFUCacheTest extends TestCase {
+import static org.junit.Assert.*;
 
+public class LFUCacheTest {
+
+    @Test
     public void testCacheNotTimeBased() {
         LFUCache cache = LFUCache.builder().capacity(2).build();
         cache.put(1, new Entity("1"));
@@ -27,6 +29,7 @@ public class LFUCacheTest extends TestCase {
         assertEquals(4, cache.getNumberOfEvictions());
     }
 
+    @Test
     public void testCacheTimeBased() throws InterruptedException {
         LFUCache cache = LFUCache.builder().capacity(2).isTimeBased(true).expiryInMillis(500).build();
         cache.put(1, new Entity("1"));
@@ -36,4 +39,5 @@ public class LFUCacheTest extends TestCase {
         assertNull(cache.get(1));
         assertEquals(0, cache.getCache().size());
     }
+
 }

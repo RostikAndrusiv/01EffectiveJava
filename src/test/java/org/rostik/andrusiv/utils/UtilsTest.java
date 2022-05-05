@@ -1,18 +1,76 @@
 package org.rostik.andrusiv.utils;
 
-import junit.framework.TestCase;
+import org.junit.Test;
 
 import java.util.Arrays;
+import java.util.concurrent.ThreadLocalRandom;
 
+import static org.junit.Assert.*;
 
-public class UtilsTest extends TestCase {
+public class UtilsTest {
 
+    @Test
     public void testMergeSort() {
-        int[] array = new int[]{1, 8, 12, 4, 7, 3, 28, 13, 25, 20};
-        int[] expected = new int[]{1, 3, 4, 7, 8, 12, 13, 20, 25, 28};
+        int[] array = getArray(100);
+
+        int[] expected = Arrays.copyOf(array, array.length);
+        Arrays.sort(expected);
 
         Utils.mergeSort(array);
 
         assertEquals(Arrays.toString(expected), Arrays.toString(array));
     }
+
+    @Test
+    public void testBinarySearchIterative(){
+        int[] array = getArray(10000);
+        Arrays.sort(array);
+        int valueToFind = array[8978];
+        int index = Utils.binarySearchIterative(array, valueToFind);
+        long start = System.nanoTime();
+        int indexNotExist = Utils.binarySearchIterative(array, 200000);
+        long end = System.nanoTime();
+        long timeToExecute = end - start;
+        assertEquals(8978, index);
+        assertEquals(-1, indexNotExist);
+
+        System.out.println("TimeToExecute: " + timeToExecute);
+    }
+
+    @Test
+    public void testBinarySearchRecursive(){
+        int[] array = getArray(10000);
+        Arrays.sort(array);
+        int valueToFind = array[8978];
+        int index = Utils.binarySearchRecursive(array, 0, array.length-1, valueToFind);
+        long start = System.nanoTime();
+        int indexNotExist = Utils.binarySearchRecursive(array, 0, array.length-1, 200000);
+        long end = System.nanoTime();
+        long timeToExecute = end - start;
+        assertEquals(8978, index);
+        assertEquals(-1, indexNotExist);
+
+        System.out.println("TimeToExecute: " + timeToExecute);
+    }
+
+    @Test
+    public void testInsertionSort(){
+        int[] array = getArray(100);
+
+        int[] expected = Arrays.copyOf(array, array.length);
+        Arrays.sort(expected);
+
+        Utils.insertionSort(array);
+
+        assertEquals(Arrays.toString(expected), Arrays.toString(array));
+    }
+
+    private int[] getArray(int elements){
+        int[] array = new int[elements];
+        for (int i = 0; i < array.length; i++) {
+            array[i] = ThreadLocalRandom.current().nextInt(1, 100000 + 1);
+        }
+        return array;
+    }
+
 }

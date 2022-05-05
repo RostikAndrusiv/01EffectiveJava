@@ -25,6 +25,7 @@ public class LFUCache {
     private int minUsedValue = -1;
     private long avgInsertionTime = 0;
     private int numberOfEvictions = 0;
+    //used only for avgTime calc
     private int numberOfTotalInsertedItems = 0;
 
     @Builder
@@ -159,17 +160,23 @@ public class LFUCache {
         avgInsertionTime = ((avgInsertionTime * (numberOfTotalInsertedItems - 1) + methodExecutionTime) / numberOfTotalInsertedItems);
     }
 
+    public int getNumberOfEvictions() {
+        return numberOfEvictions;
+    }
+
+    public long getAvgInsertionTime() {
+        return avgInsertionTime;
+    }
+
     // cant test this method, avg time is not const
     public String getStatistic() {
         return String.format("number of evictions : %s,  average insertion time : %s", numberOfEvictions, avgInsertionTime);
     }
 
-    // need this getters for testing :/
+    // need this getter for testing :/
     public Map<Integer, CacheItem> getCache() {
         return cache;
     }
 
-    public int getNumberOfEvictions() {
-        return numberOfEvictions;
-    }
+
 }
