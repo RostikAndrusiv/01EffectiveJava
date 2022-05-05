@@ -7,33 +7,37 @@ public class Utils {
         //not called
     }
 
-    public static int binarySearchIterative(int[] arr, int x)
+    // Extra mile 1.1
+    public static int binarySearchIterative(int[] valueToSearch, int x)
         {
-            int l = 0, r = arr.length - 1;
-            while (l <= r) {
-                int m = l + (r - l) / 2;
-                if (arr[m] == x)
-                    return m;
-                if (arr[m] < x)
-                    l = m + 1;
+            int left = 0;
+            int right = valueToSearch.length - 1;
+            while (left <= right) {
+                int mid = left + (right - left) / 2;
+                if (valueToSearch[mid] == x)
+                    return mid;
+                if (valueToSearch[mid] < x)
+                    left = mid + 1;
                 else
-                    r = m - 1;
+                    right = mid - 1;
             }
             return -1;
         }
 
-    public static int binarySearchRecursive(int[] arr, int left, int right, int number) {
+    // Extra mile 1.2
+    public static int binarySearchRecursive(int[] arr, int left, int right, int numberToSearch) {
         if (right >= left) {
             int mid = left + (right - left) / 2;
-            if (arr[mid] == number)
+            if (arr[mid] == numberToSearch)
                 return mid;
-            if (arr[mid] > number)
-                return binarySearchRecursive(arr, left, mid - 1, number);
-            return binarySearchRecursive(arr, mid + 1, right, number);
+            if (arr[mid] > numberToSearch)
+                return binarySearchRecursive(arr, left, mid - 1, numberToSearch);
+            return binarySearchRecursive(arr, mid + 1, right, numberToSearch);
         }
         return -1;
     }
 
+    // Extra mile 2
     public static void mergeSort(int[] arrayToSort) {
         if (arrayToSort.length < 2) {
             return;
@@ -64,9 +68,28 @@ public class Utils {
         while (i < l.length) {
             arrayToSort[k++] = l[i++];
         }
-
         while (j < r.length) {
             arrayToSort[k++] = r[j++];
         }
     }
+
+    // Extra mile 3
+    public static void insertionSort(int[] arrayToSort)
+    {
+        int n = arrayToSort.length;
+        for (int i = 1; i < n; ++i) {
+            int pointer = arrayToSort[i];
+            int j = i - 1;
+
+            while (j >= 0 && arrayToSort[j] > pointer) {
+                arrayToSort[j + 1] = arrayToSort[j];
+                j = j - 1;
+            }
+            arrayToSort[j + 1] = pointer;
+        }
+    }
+
+    // Extra mile 4
+
+
 }
