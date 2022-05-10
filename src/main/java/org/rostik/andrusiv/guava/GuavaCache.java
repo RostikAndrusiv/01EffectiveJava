@@ -10,12 +10,16 @@ import java.util.logging.Logger;
 public class GuavaCache {
     static Logger logger = Logger.getLogger(GuavaCache.class.getName());
 
-    public static Cache<Integer, Entity> cache = CacheBuilder.newBuilder()
+    private GuavaCache() {
+        //not called
+    }
+
+    public static final Cache<Integer, Entity> cache = CacheBuilder.newBuilder()
             .initialCapacity(2)
             .maximumSize(5)
             .recordStats()
             .removalListener(GuavaCache::onRemoval)
-            .expireAfterAccess(50,TimeUnit.MILLISECONDS)
+            .expireAfterAccess(50, TimeUnit.MILLISECONDS)
             .build();
 
 
