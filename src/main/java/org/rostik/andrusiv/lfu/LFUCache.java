@@ -88,7 +88,7 @@ public class LFUCache {
         cache.put(key, new CacheItem(data));
         keyCounts.put(key, 1);
         minUsedValue = 1;
-        // using optional here, too lazy to write test for null case :)
+        //check for null
         Optional.ofNullable(frequencyMap.get(1)).ifPresent(count -> count.add(key));
 
         long endTime = System.nanoTime();
