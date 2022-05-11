@@ -4,7 +4,6 @@ import lombok.Builder;
 import lombok.Data;
 import org.rostik.andrusiv.model.Entity;
 
-import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;

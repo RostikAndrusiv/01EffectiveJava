@@ -1,18 +1,36 @@
 package org.rostik.andrusiv.utils.searchutils;
 
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 import org.rostik.andrusiv.utils.sortingutils.InsertionSortingUtil;
+import org.rostik.andrusiv.utils.sortingutils.MergeSortingUtil;
+import org.rostik.andrusiv.utils.sortingutils.SortingInterface;
 
 import java.util.Arrays;
+import java.util.Collection;
 
 import static org.junit.Assert.*;
 import static org.rostik.andrusiv.TestUtil.TestDataUtil.getArray;
 
+@RunWith(Parameterized.class)
 public class SearchUtilTest {
+
+    SortingInterface sortingUtil;
 
     SearchUtil searchUtil = new SearchUtil();
 
+    public SearchUtilTest(SortingInterface sortingUtil){
+        this.sortingUtil = sortingUtil;
+    }
 
+    @Parameterized.Parameters
+    public static Collection<Object[]> getParameters() {
+        return Arrays.asList(new Object[][] {
+                { new InsertionSortingUtil() },
+                { new MergeSortingUtil()}
+        });
+    }
 
     @Test
     public void testBinarySearchIterative(){
@@ -51,9 +69,9 @@ public class SearchUtilTest {
         int[] array = getArray(10000);
         array[array.length-1] = 100000;
         int valueToFind = 100000;
-        int index = searchUtil.binarySearchIterativeNotSorted(array, valueToFind, new InsertionSortingUtil());
+        int index = searchUtil.binarySearchIterativeNotSorted(array, valueToFind, sortingUtil);
         long start = System.nanoTime();
-        int indexNotExist = searchUtil.binarySearchIterativeNotSorted(array, Integer.MAX_VALUE, new InsertionSortingUtil());
+        int indexNotExist = searchUtil.binarySearchIterativeNotSorted(array, Integer.MAX_VALUE, sortingUtil);
         long end = System.nanoTime();
         long timeToExecute = end - start;
         assertEquals(array.length-1, index);
