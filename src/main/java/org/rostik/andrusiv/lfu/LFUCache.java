@@ -170,7 +170,7 @@ public class LFUCache {
 
     // cant test this method, avg time is not const
     public String getStatistic() {
-        return String.format("number of evictions : %s,  average insertion time : %s", numberOfEvictions, avgInsertionTime);
+        return String.format("capacity : %s, items : %s,  number of evictions : %s,  average insertion time : %s", capacity, cache.size(), numberOfEvictions, avgInsertionTime);
     }
 
     // need this getter for testing :/
