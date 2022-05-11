@@ -11,7 +11,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class LFUCache {
+public class LFUCache implements LFUCacheInterface {
     Logger logger = Logger.getLogger(LFUCache.class.getName());
 
     Map<Integer, CacheItem> cache = new ConcurrentHashMap<>();
@@ -44,6 +44,7 @@ public class LFUCache {
         }
     }
 
+    @Override
     public Entity get(int key) {
         if (!cache.containsKey(key)) {
             return null;
@@ -66,6 +67,7 @@ public class LFUCache {
         return cache.get(key).getData();
     }
 
+    @Override
     public void put(int key, Entity data) {
         long startTime = System.nanoTime();
         //replace entity in cache by new one
@@ -160,6 +162,7 @@ public class LFUCache {
         avgInsertionTime = ((avgInsertionTime * (numberOfTotalInsertedItems - 1) + methodExecutionTime) / numberOfTotalInsertedItems);
     }
 
+    @Override
     public int getNumberOfEvictions() {
         return numberOfEvictions;
     }
@@ -169,13 +172,13 @@ public class LFUCache {
     }
 
     // cant test this method, avg time is not const
+    @Override
     public String getStatistic() {
         return String.format("capacity : %s, items : %s,  number of evictions : %s,  average insertion time : %s", capacity, cache.size(), numberOfEvictions, avgInsertionTime);
     }
-
-    // need this getter for testing :/
-    public Map<Integer, CacheItem> getCache() {
-        return cache;
+    @Override
+    public int size(){
+        return cache.size();
     }
 
 

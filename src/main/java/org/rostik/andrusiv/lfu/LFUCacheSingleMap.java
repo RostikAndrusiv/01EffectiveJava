@@ -11,7 +11,7 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class LFUCacheSingleMap {
+public class LFUCacheSingleMap implements LFUCacheInterface{
 
     Logger logger = Logger.getLogger(LFUCacheSingleMap.class.getName());
 
@@ -78,6 +78,7 @@ public class LFUCacheSingleMap {
         }
     }
 
+    @Override
     public void put(int key, Entity data) {
         long startTime = System.nanoTime();
         if (cacheMap.containsKey((key))) {
@@ -116,6 +117,7 @@ public class LFUCacheSingleMap {
         }
     }
 
+    @Override
     public Entity get(int key) {
         if(cacheMap.get(key) == null){
             return null;
@@ -150,6 +152,7 @@ public class LFUCacheSingleMap {
         return cacheMap.size() == capacity;
     }
 
+    @Override
     public int size(){
         return cacheMap.size();
     }
@@ -157,10 +160,12 @@ public class LFUCacheSingleMap {
     public ConcurrentMap<Integer, CacheItem> getCacheMap() {
         return cacheMap;
     }
+    @Override
     public String getStatistic() {
         return String.format("capacity : %s, items : %s,  number of evictions : %s,  average insertion time : %s", capacity, cacheMap.size(), numberOfEvictions, avgInsertionTime);
     }
 
+    @Override
     public int getNumberOfEvictions() {
         return numberOfEvictions;
     }

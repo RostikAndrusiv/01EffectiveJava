@@ -33,6 +33,22 @@ public class SearchUtilTest {
     }
 
     @Test
+    public void testBinarySearchIterativeNotSorted(){
+        int[] array = getArray(10000);
+        array[array.length-1] = 100000;
+        int valueToFind = 100000;
+        int index = searchUtil.binarySearchIterativeNotSorted(array, valueToFind, sortingUtil);
+        long start = System.nanoTime();
+        int indexNotExist = searchUtil.binarySearchIterativeNotSorted(array, Integer.MAX_VALUE, sortingUtil);
+        long end = System.nanoTime();
+        long timeToExecute = end - start;
+        assertEquals(array.length-1, index);
+        assertEquals(-1, indexNotExist);
+
+        System.out.println("TimeToExecute: " + timeToExecute);
+    }
+
+    @Test
     public void testBinarySearchIterative(){
         int[] array = getArray(10000);
         Arrays.sort(array);
@@ -59,22 +75,6 @@ public class SearchUtilTest {
         long end = System.nanoTime();
         long timeToExecute = end - start;
         assertEquals(8978, index);
-        assertEquals(-1, indexNotExist);
-
-        System.out.println("TimeToExecute: " + timeToExecute);
-    }
-
-    @Test
-    public void testBinarySearchIterativeNotSorted(){
-        int[] array = getArray(10000);
-        array[array.length-1] = 100000;
-        int valueToFind = 100000;
-        int index = searchUtil.binarySearchIterativeNotSorted(array, valueToFind, sortingUtil);
-        long start = System.nanoTime();
-        int indexNotExist = searchUtil.binarySearchIterativeNotSorted(array, Integer.MAX_VALUE, sortingUtil);
-        long end = System.nanoTime();
-        long timeToExecute = end - start;
-        assertEquals(array.length-1, index);
         assertEquals(-1, indexNotExist);
 
         System.out.println("TimeToExecute: " + timeToExecute);

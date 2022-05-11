@@ -23,7 +23,7 @@ public class LFUCacheTest {
         cache.get(2);
         cache.get(3);
         cache.get(4);
-        assertEquals(2, cache.getCache().size());
+        assertEquals(2, cache.size());
         assertNull(cache.get(256));
         assertEquals(new Entity("six"), cache.get(6));
         assertEquals(4, cache.getNumberOfEvictions());
@@ -34,10 +34,10 @@ public class LFUCacheTest {
         LFUCache cache = LFUCache.builder().capacity(2).isTimeBased(true).expiryInMillis(500).build();
         cache.put(1, new Entity("1"));
         assertEquals(new Entity("1"), cache.get(1));
-        assertEquals(1, cache.getCache().size());
+        assertEquals(1, cache.size());
         Thread.sleep(1000L);
         assertNull(cache.get(1));
-        assertEquals(0, cache.getCache().size());
+        assertEquals(0, cache.size());
     }
 
 }
