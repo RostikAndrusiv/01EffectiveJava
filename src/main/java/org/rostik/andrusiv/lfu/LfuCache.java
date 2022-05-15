@@ -2,15 +2,13 @@ package org.rostik.andrusiv.lfu;
 
 import org.rostik.andrusiv.model.Entity;
 
-public interface LFUCacheInterface {
+public interface LfuCache {
 
     void put(int id, Entity entity);
 
     Entity get(int id);
 
-    int getNumberOfEvictions();
-
-    String getStatistic();
+    void printStats();
 
     int size();
 }
