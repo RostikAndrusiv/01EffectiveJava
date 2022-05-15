@@ -30,6 +30,7 @@ public class SearchUtil {
         return -1;
     }
 
+    //TODO DRY
     public int binarySearchIterativeNotSorted(int[] array, int valueToSearch, SortingInterface sortingUtil) {
         sortingUtil.sort(array);
         int left = 0;

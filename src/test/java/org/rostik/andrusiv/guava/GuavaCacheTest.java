@@ -17,6 +17,7 @@ public class GuavaCacheTest {
         GuavaCache.cache.put(5, new Entity("five"));
         GuavaCache.cache.put(6, new Entity("six"));
         GuavaCache.cache.put(7, new Entity("seven"));
+
         GuavaCache.cache.getIfPresent(1);
         GuavaCache.cache.getIfPresent(7);
         System.out.println(GuavaCache.cache.stats());

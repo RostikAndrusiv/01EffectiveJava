@@ -6,5 +6,5 @@ import lombok.Data;
 @Data
 @AllArgsConstructor
 public class Entity {
-    private String data;
+    private final String data;
 }

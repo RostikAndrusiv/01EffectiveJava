@@ -7,26 +7,25 @@ import org.rostik.andrusiv.model.Entity;
 import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class LFUCacheSingleMap implements LFUCacheInterface{
+public class LfuCacheSingleMap implements LFUCacheInterface {
 
-    Logger logger = Logger.getLogger(LFUCacheSingleMap.class.getName());
+    Logger logger = Logger.getLogger(LfuCacheSingleMap.class.getName());
 
-    private static final ConcurrentHashMap<Integer, CacheItem> cacheMap = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<Integer, CacheItem> cacheMap = new ConcurrentHashMap<>();
 
     private final int capacity;
     private boolean isTimeBased = false;
-    private long expiryInMillis;
+    private final long expiryInMillis;
     private long avgInsertionTime = 0;
     private int numberOfEvictions = 0;
     //used only for avgTime calc
     private int numberOfTotalInsertedItems = 0;
 
     @Builder
-    public LFUCacheSingleMap(int capacity, boolean isTimeBased, long expiryInMillis) {
+    public LfuCacheSingleMap(int capacity, boolean isTimeBased, long expiryInMillis) {
         this.capacity = capacity;
         this.isTimeBased = isTimeBased;
         this.expiryInMillis = expiryInMillis;
@@ -36,17 +35,19 @@ public class LFUCacheSingleMap implements LFUCacheInterface{
 
     private void initialize() {
         if (isTimeBased) {
-            new LFUCacheSingleMap.CleanerThread().start();
+            new LfuCacheSingleMap.CleanerThread().start();
         }
     }
 
+    //TODO Date from jdk8
     @Data
-    class CacheItem {
+    static class CacheItem {
         private Entity data;
         private int frequency;
         private Long lastAccessTime;
 
-        private CacheItem() {
+        private CacheItem(Entity data) {
+            this.data = data;
             this.lastAccessTime = new Date().getTime();
         }
     }
@@ -64,69 +65,59 @@ public class LFUCacheSingleMap implements LFUCacheInterface{
                 }
             }
         }
-    }
 
-    private void cleanMap() {
-        long currentTime = new Date().getTime();
-        for (Map.Entry<Integer, CacheItem> entry : cacheMap.entrySet()) {
-            if (currentTime > (entry.getValue().lastAccessTime + expiryInMillis)) {
-                String event = String.format("Removing item: %s, CAUSE: expired", entry);
-                logger.log(Level.INFO, event);
-                cacheMap.remove(entry.getKey());
-                numberOfEvictions++;
+        private void cleanMap() {
+            long currentTime = new Date().getTime();
+            for (Map.Entry<Integer, CacheItem> entry : cacheMap.entrySet()) {
+                if (currentTime > (entry.getValue().lastAccessTime + expiryInMillis)) {
+                    String event = String.format("Removing item: %s, CAUSE: expired", entry);
+                    logger.log(Level.INFO, event);
+                    cacheMap.remove(entry.getKey());
+                    numberOfEvictions++;
+                }
             }
         }
     }
 
+    //TODO move stats to external class(create methods)
     @Override
     public void put(int key, Entity data) {
         long startTime = System.nanoTime();
         if (cacheMap.containsKey((key))) {
-            CacheItem temp = new CacheItem();
-            temp.setData(data);
-            temp.setFrequency(0);
+            CacheItem temp = new CacheItem(data);
             cacheMap.put(key, temp);
-            return;
-        }
-        if (!isFull()) {
-            CacheItem temp = new CacheItem();
-            temp.setData(data);
-            temp.setFrequency(0);
-
-            cacheMap.put(key, temp);
-            numberOfTotalInsertedItems++;
-            long endTime = System.nanoTime();
-            long executionTime = endTime - startTime;
-            calculateAvgSpentTime(executionTime);
         } else {
-            int entryKeyToBeRemoved = getLFUKey();
-            String event = String.format("Removing item: %s, CAUSE: LFU", cacheMap.get(entryKeyToBeRemoved));
-            logger.log(Level.INFO, event);
-            cacheMap.remove(entryKeyToBeRemoved);
-            numberOfEvictions++;
-
-            CacheItem temp = new CacheItem();
-            temp.setData(data);
-            temp.setFrequency(0);
-
-            cacheMap.put(key, temp);
-            long endTime = System.nanoTime();
-            long executionTime = endTime - startTime;
-            numberOfTotalInsertedItems++;
-            calculateAvgSpentTime(executionTime);
+            if (!isFull()) {
+                CacheItem temp = new CacheItem(data);
+                cacheMap.put(key, temp);
+                numberOfTotalInsertedItems++;
+            } else {
+                int entryKeyToBeRemoved = getLFUKey();
+                //TODO move logging to listener
+                String event = String.format("Removing item: %s, CAUSE: LFU", cacheMap.get(entryKeyToBeRemoved));
+                logger.log(Level.INFO, event);
+                cacheMap.remove(entryKeyToBeRemoved);
+                numberOfEvictions++;
+                CacheItem temp = new CacheItem(data);
+                cacheMap.put(key, temp);
+                numberOfTotalInsertedItems++;
+            }
         }
+        long endTime = System.nanoTime();
+        long executionTime = endTime - startTime;
+        calculateAvgSpentTime(executionTime);
     }
 
     @Override
     public Entity get(int key) {
-        if(cacheMap.get(key) == null){
+        CacheItem item = cacheMap.get(key);
+        if (item == null) {
             return null;
-        } else {
-            CacheItem item = cacheMap.get(key);
-            item.setFrequency(item.getFrequency()+1);
-            item.setLastAccessTime(new Date().getTime());
-            return item.getData();
         }
+        //TODO hide this behavior in getData
+        item.setFrequency(item.getFrequency() + 1);
+        item.setLastAccessTime(new Date().getTime());
+        return item.getData();
     }
 
 
@@ -153,13 +144,11 @@ public class LFUCacheSingleMap implements LFUCacheInterface{
     }
 
     @Override
-    public int size(){
+    public int size() {
         return cacheMap.size();
     }
 
-    public ConcurrentMap<Integer, CacheItem> getCacheMap() {
-        return cacheMap;
-    }
+    //TODO move into external class
     @Override
     public String getStatistic() {
         return String.format("capacity : %s, items : %s,  number of evictions : %s,  average insertion time : %s", capacity, cacheMap.size(), numberOfEvictions, avgInsertionTime);

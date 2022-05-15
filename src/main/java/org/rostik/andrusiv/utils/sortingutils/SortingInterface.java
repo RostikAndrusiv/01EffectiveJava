@@ -1,5 +1,7 @@
 package org.rostik.andrusiv.utils.sortingutils;
 
+//TODO rename
 public interface SortingInterface {
-    public void sort(int[] arrayToSort);
+    //TODO return new array
+    void sort(int[] arrayToSort);
 }

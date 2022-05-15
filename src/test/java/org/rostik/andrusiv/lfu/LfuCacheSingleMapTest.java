@@ -4,13 +4,15 @@ import org.junit.Test;
 import org.rostik.andrusiv.model.Entity;
 import static org.junit.Assert.*;
 
-public class LFUCacheSingleMapTest {
+public class LfuCacheSingleMapTest {
 
+    //TODO add assertions
     @Test
     public void testCacheNotTimeBased() {
-        LFUCacheSingleMap cache = LFUCacheSingleMap.builder().capacity(2).build();
+        LfuCacheSingleMap cache = LfuCacheSingleMap.builder().capacity(2).build();
         cache.put(1, new Entity("1"));
         cache.put(2, new Entity("2"));
+        assertEquals(2, cache.size());
         cache.get(1);
         cache.put(3, new Entity("3"));
         cache.get(2);
@@ -30,11 +32,17 @@ public class LFUCacheSingleMapTest {
 
     @Test
     public void testCacheTimeBased() throws InterruptedException {
-        LFUCacheSingleMap cache = LFUCacheSingleMap.builder().capacity(2).isTimeBased(true).expiryInMillis(500).build();
+        //given
+        LfuCacheSingleMap cache = LfuCacheSingleMap.builder().capacity(2).isTimeBased(true).expiryInMillis(500).build();
+        //when
         cache.put(1, new Entity("1"));
+        //then
         assertEquals(new Entity("1"), cache.get(1));
         assertEquals(1, cache.size());
+
+        //when
         Thread.sleep(1000L);
+        //then
         assertNull(cache.get(1));
         assertEquals(0, cache.size());
     }

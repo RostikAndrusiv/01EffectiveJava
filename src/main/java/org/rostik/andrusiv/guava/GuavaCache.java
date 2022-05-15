@@ -7,6 +7,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+//TODO incapsulate, onRemoval in constructor
 public class GuavaCache {
     static Logger logger = Logger.getLogger(GuavaCache.class.getName());
 
