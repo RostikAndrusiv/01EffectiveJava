@@ -5,7 +5,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.rostik.andrusiv.utils.sortingutils.InsertionSortingUtil;
 import org.rostik.andrusiv.utils.sortingutils.MergeSortingUtil;
-import org.rostik.andrusiv.utils.sortingutils.SortingInterface;
+import org.rostik.andrusiv.utils.sortingutils.Sortable;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -16,11 +16,11 @@ import static org.rostik.andrusiv.TestUtil.TestDataUtil.getArray;
 @RunWith(Parameterized.class)
 public class SearchUtilTest {
 
-    SortingInterface sortingUtil;
+    Sortable sortingUtil;
 
     SearchUtil searchUtil = new SearchUtil();
 
-    public SearchUtilTest(SortingInterface sortingUtil){
+    public SearchUtilTest(Sortable sortingUtil){
         this.sortingUtil = sortingUtil;
     }
 

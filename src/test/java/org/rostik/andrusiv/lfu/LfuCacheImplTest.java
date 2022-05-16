@@ -10,28 +10,34 @@ public class LfuCacheImplTest {
     @Test
     public void testCacheNotTimeBased() {
         RemovalListener removalListener = new RemovalListenerImpl();
+        //given
         LfuCacheImpl cache = LfuCacheImpl.builder()
                 .capacity(2)
                 .removalListener(removalListener)
                 .build();
+        //when
         cache.put(1, new Entity("1"));
+        //then
+        assertEquals(1, cache.size());
+        //when
         cache.put(2, new Entity("2"));
+        //then
         assertEquals(2, cache.size());
+        //when
+        cache.get(1);
         cache.get(1);
         cache.put(3, new Entity("3"));
-        cache.get(2);
-        cache.get(3);
-        cache.put(4, new Entity("4"));
-        cache.put(5, new Entity("5"));
-        cache.put(6, new Entity("6"));
-        cache.put(6, new Entity("six"));
-        cache.get(2);
-        cache.get(3);
-        cache.get(4);
+        //then
         assertEquals(2, cache.size());
+        assertFalse(cache.containsKey(2));
+        assertTrue(cache.containsKey(1));
+        assertTrue(cache.containsKey(3));
+        //when
+        cache.put(3, new Entity("three"));
+        //then
+        assertEquals(2, cache.size());
+        assertEquals(new Entity("three"), cache.get(3));
         assertNull(cache.get(256));
-        assertEquals(new Entity("six"), cache.get(6));
-//        assertEquals(4, cache.getNumberOfEvictions());
         cache.printStats();
     }
 

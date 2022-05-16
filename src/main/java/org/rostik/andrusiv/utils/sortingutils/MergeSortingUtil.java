@@ -1,10 +1,10 @@
 package org.rostik.andrusiv.utils.sortingutils;
 
-public class MergeSortingUtil implements SortingInterface{
+public class MergeSortingUtil implements Sortable {
     @Override
-    public void sort(int[] arrayToSort) {
+    public int[] sort(int[] arrayToSort) {
         if (arrayToSort.length < 2) {
-            return;
+            return null;
         }
 
         int mid = arrayToSort.length / 2;
@@ -35,5 +35,6 @@ public class MergeSortingUtil implements SortingInterface{
         while (j < r.length) {
             arrayToSort[k++] = r[j++];
         }
+        return arrayToSort;
     }
 }

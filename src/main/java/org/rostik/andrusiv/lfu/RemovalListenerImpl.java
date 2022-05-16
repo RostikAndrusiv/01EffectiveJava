@@ -7,9 +7,6 @@ public class RemovalListenerImpl implements RemovalListener {
 
     Logger logger = Logger.getLogger(RemovalListenerImpl.class.getName());
 
-    public RemovalListenerImpl() { ;
-    }
-
     @Override
     public void log(Object o, RemovalCauseEnum removalCause) {
         String event = String.format("Removing item: %s, CAUSE: %s", o, removalCause);

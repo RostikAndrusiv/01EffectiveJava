@@ -179,6 +179,10 @@ public class LfuCacheImpl implements LfuCache {
         return cacheMap.size();
     }
 
+    public boolean containsKey(int key){
+        return cacheMap.containsKey(key);
+    }
+
     public CacheStats getStats(){
         cacheStats.setCapacity(capacity);
         cacheStats.setItemsInCache(cacheMap.size());

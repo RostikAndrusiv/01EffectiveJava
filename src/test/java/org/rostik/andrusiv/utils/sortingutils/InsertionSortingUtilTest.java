@@ -14,7 +14,7 @@ public class InsertionSortingUtilTest {
 
         int[] expected = Arrays.copyOf(array, array.length);
         Arrays.sort(expected);
-        SortingInterface sortUtil = new InsertionSortingUtil();
+        Sortable sortUtil = new InsertionSortingUtil();
         sortUtil.sort(array);
 
         assertEquals(Arrays.toString(expected), Arrays.toString(array));
