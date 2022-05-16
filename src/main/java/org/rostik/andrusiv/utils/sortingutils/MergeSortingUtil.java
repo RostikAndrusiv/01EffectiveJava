@@ -4,7 +4,7 @@ public class MergeSortingUtil implements Sortable {
     @Override
     public int[] sort(int[] arrayToSort) {
         if (arrayToSort.length < 2) {
-            return null;
+            return new int[]{};
         }
 
         int mid = arrayToSort.length / 2;

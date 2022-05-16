@@ -22,7 +22,7 @@ public class LfuCacheImpl implements LfuCache {
 
     CacheStats cacheStats = new CacheStats();
 
-    private StampedLock lock = new StampedLock();
+    private final StampedLock lock = new StampedLock();
 
     private final int capacity;
     private final boolean isTimeBased;
@@ -68,6 +68,8 @@ public class LfuCacheImpl implements LfuCache {
     static class CacheStats {
         private int capacity;
         private int itemsInCache;
+        private int hitCount;
+        private int missCount;
         private int numberOfEvictions;
         private long averageInsertionTime;
     }
@@ -120,7 +122,7 @@ public class LfuCacheImpl implements LfuCache {
                 } else {
                     int entryKeyToBeRemoved = getLFUKey();
                     Optional.ofNullable(removalListener)
-                            .ifPresent(listener -> listener.log(cacheMap.get(entryKeyToBeRemoved), RemovalCauseEnum.LFU));
+                            .ifPresent(listener -> listener.log(cacheMap.get(entryKeyToBeRemoved), RemovalCauseEnum.SIZE));
                     cacheMap.remove(entryKeyToBeRemoved);
                     cacheStats.numberOfEvictions++;
                     CacheItem temp = new CacheItem(data);
@@ -143,8 +145,10 @@ public class LfuCacheImpl implements LfuCache {
         try{
             CacheItem item = cacheMap.get(key);
             if (item == null) {
+                cacheStats.missCount++;
                 return null;
             }
+            cacheStats.hitCount++;
             return item.getData();
         }finally {
             lock.unlockRead(stamp);
