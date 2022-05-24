@@ -8,7 +8,5 @@ public interface LfuCache {
 
     Entity get(int id);
 
-    void printStats();
-
     int size();
 }

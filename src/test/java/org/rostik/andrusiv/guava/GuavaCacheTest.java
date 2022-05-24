@@ -2,33 +2,38 @@ package org.rostik.andrusiv.guava;
 
 import com.google.common.cache.RemovalListener;
 import com.google.common.cache.RemovalNotification;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 import org.rostik.andrusiv.model.Entity;
-
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static org.junit.Assert.*;
 
+@Slf4j
 public class GuavaCacheTest {
+    private static final Logger logger = LoggerFactory.getLogger(GuavaCache.class.getName());
 
     @Test
     public void testCache() throws InterruptedException {
-        Logger logger = Logger.getLogger(RemovalListenerImpl.class.getName());
-        RemovalListener<Integer, Entity> listener;
-
-        listener = new RemovalListener<Integer, Entity>() {
+        RemovalListener<Integer, Entity> listener = new RemovalListener<Integer, Entity>() {
             @Override
             public void onRemoval(RemovalNotification<Integer, Entity> notification) {
                 if (notification.wasEvicted()) {
                     String event = String.format("Removed entry: %s : %s; cause: %s ", notification.getKey(), notification.getValue(), notification.getCause());
-                    logger.log(Level.INFO, event);
+                    logger.info(event);
                 }
             }
         };
 
-        //given
-        GuavaCache cache = new GuavaCache(listener);
+       // given
+        GuavaCache cache = GuavaCache.builder()
+                .initialCapacity(2)
+                .expireAfterAccessInMillis(1)
+                .recordStats(true)
+                .maximumSize(5)
+                .listener(listener)
+                .build();
         //when
         cache.put(1, new Entity("one"));
         cache.put(2, new Entity("two"));
@@ -50,7 +55,7 @@ public class GuavaCacheTest {
         Thread.sleep(15000L);
         //then
         System.out.println(cache.size());
-        assertEquals(1, cache.size());
+        assertEquals(5, cache.size());
         System.out.println(cache.asMap());
     }
 }

@@ -2,14 +2,20 @@ package org.rostik.andrusiv.lfu;
 
 import org.junit.Test;
 import org.rostik.andrusiv.model.Entity;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import static org.junit.Assert.*;
 
 public class LfuCacheImplTest {
-
+    private static final Logger logger = LoggerFactory.getLogger(LfuCacheImplTest.class.getName());
     //TODO add assertions
     @Test
     public void testCacheNotTimeBased() {
-        RemovalListener removalListener = new RemovalListenerImpl();
+        RemovalListener removalListener = (o, removalCauseEnum) -> {
+            String event = String.format("Removing item: %s, CAUSE: %s", o, removalCauseEnum);
+            logger.info(event);
+        };
         //given
         LfuCacheImpl cache = LfuCacheImpl.builder()
                 .capacity(2)
@@ -38,12 +44,11 @@ public class LfuCacheImplTest {
         assertEquals(2, cache.size());
         assertEquals(new Entity("three"), cache.get(3));
         assertNull(cache.get(256));
-        cache.printStats();
     }
 
     @Test
     public void testCacheTimeBased() throws InterruptedException {
-        RemovalListener removalListener = new RemovalListenerImpl();
+        RemovalListener removalListener = new LogOnRemoval();
         //given
         LfuCacheImpl cache = LfuCacheImpl.builder()
                 .capacity(2)

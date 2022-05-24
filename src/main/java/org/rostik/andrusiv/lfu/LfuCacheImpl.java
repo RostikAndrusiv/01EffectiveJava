@@ -1,7 +1,7 @@
 package org.rostik.andrusiv.lfu;
 
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
 import org.rostik.andrusiv.model.Entity;
 
 import java.time.LocalDateTime;
@@ -10,23 +10,27 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.locks.StampedLock;
 
+//TODO stats in external class
+//TODO books: clean code, clean architecture, refactoring
+
+
 public class LfuCacheImpl implements LfuCache {
-    //TODO logs in listener +
-    //TODO hide this behavior in getData (increment frequency, update date) +
-    //TODO Date from jdk8 +
-    //TODO move stats to external class(create methods) +
-    //TODO Concurrency +
+    //TODO move stats to external class(create methods)
+    //TODO Concurrency (thread scheduling)
     private final Map<Integer, CacheItem> cacheMap = new HashMap<>();
 
-    RemovalListener removalListener;
-
-    CacheStats cacheStats = new CacheStats();
+    private RemovalListener removalListener;
 
     private final StampedLock lock = new StampedLock();
 
     private final int capacity;
     private final boolean isTimeBased;
     private final long expiryInMillis;
+    private int hitCount;
+    private int missCount;
+    private int numberOfEvictions;
+    private long averageInsertionTime;
+
     //used only for avgTime calc
     private int numberOfTotalInsertedItems = 0;
 
@@ -46,9 +50,9 @@ public class LfuCacheImpl implements LfuCache {
         }
     }
 
-    @Data
+    @Getter
     static class CacheItem {
-        private Entity data;
+        private final Entity data;
         private int frequency;
         private LocalDateTime lastAccessTime;
 
@@ -62,16 +66,6 @@ public class LfuCacheImpl implements LfuCache {
             lastAccessTime = LocalDateTime.now();
             return data;
         }
-    }
-
-    @Data
-    static class CacheStats {
-        private int capacity;
-        private int itemsInCache;
-        private int hitCount;
-        private int missCount;
-        private int numberOfEvictions;
-        private long averageInsertionTime;
     }
 
     private class CleanerThread extends Thread {
@@ -89,15 +83,15 @@ public class LfuCacheImpl implements LfuCache {
         }
 
         private void cleanMap() {
-            LocalDateTime currentTime = LocalDateTime.now();
             long stamp = lock.writeLock();
-            try{
+            try {
+                LocalDateTime currentTime = LocalDateTime.now();
                 for (Map.Entry<Integer, CacheItem> entry : cacheMap.entrySet()) {
-                    if (currentTime.isAfter(entry.getValue().lastAccessTime.plusSeconds(expiryInMillis/1000))) {
+                    if (currentTime.isAfter(entry.getValue().lastAccessTime.plusSeconds(expiryInMillis / 1000))) {
                         Optional.ofNullable(removalListener)
-                                .ifPresent(listener -> listener.log(entry, RemovalCauseEnum.EXPIRED));
+                                .ifPresent(listener -> listener.onRemove(entry, RemovalCauseEnum.EXPIRED));
                         cacheMap.remove(entry.getKey());
-                        cacheStats.numberOfEvictions++;
+                        numberOfEvictions++;
                     }
                 }
             } finally {
@@ -108,49 +102,41 @@ public class LfuCacheImpl implements LfuCache {
 
     @Override
     public void put(int key, Entity data) {
-        long startTime = System.nanoTime();
         long stamp = lock.writeLock();
-        try{
-            if (cacheMap.containsKey((key))) {
-                CacheItem temp = new CacheItem(data);
-                cacheMap.put(key, temp);
-            } else {
-                if (!isFull()) {
-                    CacheItem temp = new CacheItem(data);
-                    cacheMap.put(key, temp);
-                    numberOfTotalInsertedItems++;
-                } else {
-                    int entryKeyToBeRemoved = getLFUKey();
-                    Optional.ofNullable(removalListener)
-                            .ifPresent(listener -> listener.log(cacheMap.get(entryKeyToBeRemoved), RemovalCauseEnum.SIZE));
-                    cacheMap.remove(entryKeyToBeRemoved);
-                    cacheStats.numberOfEvictions++;
-                    CacheItem temp = new CacheItem(data);
-                    cacheMap.put(key, temp);
-                    numberOfTotalInsertedItems++;
-                }
+        try {
+            long startTime = System.nanoTime();
+            if (!cacheMap.containsKey(key) && isFull()) {
+                int entryKeyToBeRemoved = getLFUKey();
+                Optional.ofNullable(removalListener)
+                        .ifPresent(listener -> listener.onRemove(cacheMap.get(entryKeyToBeRemoved), RemovalCauseEnum.SIZE));
+                cacheMap.remove(entryKeyToBeRemoved);
+                numberOfEvictions++;
             }
-        }  finally {
+
+            CacheItem temp = new CacheItem(data);
+            cacheMap.put(key, temp);
+            numberOfTotalInsertedItems++;
+            long endTime = System.nanoTime();
+            long executionTime = endTime - startTime;
+            calculateAvgSpentTime(executionTime);
+        } finally {
             lock.unlockWrite(stamp);
         }
 
-        long endTime = System.nanoTime();
-        long executionTime = endTime - startTime;
-        cacheStats.setAverageInsertionTime(calculateAvgSpentTime(executionTime));
     }
 
     @Override
     public Entity get(int key) {
         long stamp = lock.readLock();
-        try{
+        try {
             CacheItem item = cacheMap.get(key);
             if (item == null) {
-                cacheStats.missCount++;
+                missCount++;
                 return null;
             }
-            cacheStats.hitCount++;
+            hitCount++;
             return item.getData();
-        }finally {
+        } finally {
             lock.unlockRead(stamp);
         }
     }
@@ -169,32 +155,41 @@ public class LfuCacheImpl implements LfuCache {
         return key;
     }
 
-    private long calculateAvgSpentTime(long methodExecutionTime) {
-        return (cacheStats.averageInsertionTime * (numberOfTotalInsertedItems - 1) + methodExecutionTime) / numberOfTotalInsertedItems;
+    private void calculateAvgSpentTime(long methodExecutionTime) {
+        averageInsertionTime = (averageInsertionTime * (numberOfTotalInsertedItems - 1) + methodExecutionTime) / numberOfTotalInsertedItems;
     }
 
-
+    //TODO add lock
     private boolean isFull() {
-        return cacheMap.size() == capacity;
+        synchronized (cacheMap) {
+            return cacheMap.size() == capacity;
+        }
     }
 
+    //TODO add lock
     @Override
     public int size() {
-        return cacheMap.size();
+        synchronized (cacheMap) {
+            return cacheMap.size();
+        }
     }
 
-    public boolean containsKey(int key){
-        return cacheMap.containsKey(key);
+    //TODO add lock
+    public boolean containsKey(int key) {
+        synchronized (cacheMap) {
+            return cacheMap.containsKey(key);
+        }
     }
 
-    public CacheStats getStats(){
-        cacheStats.setCapacity(capacity);
-        cacheStats.setItemsInCache(cacheMap.size());
-        return cacheStats;
-    }
-
-    @Override
-    public void printStats(){
-        System.out.println(getStats());
+    //TODO lock
+    public CacheStats getStats() {
+        long stamp = lock.readLock();
+        try {
+            //stats
+            int itemsInCache = size();
+            return new CacheStats(itemsInCache, hitCount, missCount, numberOfEvictions, averageInsertionTime);
+        } finally {
+            lock.unlockRead(stamp);
+        }
     }
 }
