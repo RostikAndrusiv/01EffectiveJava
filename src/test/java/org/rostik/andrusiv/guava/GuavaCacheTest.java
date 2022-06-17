@@ -29,7 +29,7 @@ public class GuavaCacheTest {
        // given
         GuavaCache cache = GuavaCache.builder()
                 .initialCapacity(2)
-                .expireAfterAccessInMillis(1)
+                .expireAfterAccessInMillis(500)
                 .recordStats(true)
                 .maximumSize(5)
                 .listener(listener)
@@ -52,7 +52,7 @@ public class GuavaCacheTest {
 
         System.out.println(cache.stats());
         //when
-        Thread.sleep(15000L);
+        Thread.sleep(1000);
         //then
         System.out.println(cache.size());
         assertEquals(5, cache.size());

@@ -7,14 +7,14 @@ import java.util.Arrays;
 import static org.junit.Assert.*;
 import static org.rostik.andrusiv.TestUtil.TestDataUtil.getArray;
 
-public class InsertionSortingUtilTest {
+public class InsertionSortingTest {
     @Test
     public void testInsertionSort(){
         int[] array = getArray(100);
 
         int[] expected = Arrays.copyOf(array, array.length);
         Arrays.sort(expected);
-        Sortable sortUtil = new InsertionSortingUtil();
+        Sorting sortUtil = new InsertionSorting();
         sortUtil.sort(array);
 
         assertEquals(Arrays.toString(expected), Arrays.toString(array));

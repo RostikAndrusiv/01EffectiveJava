@@ -1,6 +1,6 @@
 package org.rostik.andrusiv.utils.sortingutils;
 
-public class InsertionSortingUtil implements Sortable {
+public class InsertionSorting implements Sorting {
     @Override
     public int[] sort(int[] arrayToSort) {
         int n = arrayToSort.length;

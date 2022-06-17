@@ -1,6 +1,6 @@
 package org.rostik.andrusiv.utils.sortingutils;
 
-public class MergeSortingUtil implements Sortable {
+public class MergeSortingUtil implements Sorting {
     @Override
     public int[] sort(int[] arrayToSort) {
         if (arrayToSort.length < 2) {

@@ -53,7 +53,7 @@ public class LfuCacheImplTest {
         LfuCacheImpl cache = LfuCacheImpl.builder()
                 .capacity(2)
                 .isTimeBased(true)
-                .expiryInMillis(500)
+                .expiryInMillis(1000)
                 .removalListener(removalListener)
                 .build();
         //when
@@ -62,6 +62,16 @@ public class LfuCacheImplTest {
         assertEquals(new Entity("1"), cache.get(1));
         assertEquals(1, cache.size());
 
+        //when
+        Thread.sleep(1000L);
+        //then
+        assertNull(cache.get(1));
+        assertEquals(0, cache.size());
+        //when
+        cache.put(1, new Entity("5"));
+        //then
+        assertEquals(new Entity("5"), cache.get(1));
+        assertEquals(1, cache.size());
         //when
         Thread.sleep(1000L);
         //then

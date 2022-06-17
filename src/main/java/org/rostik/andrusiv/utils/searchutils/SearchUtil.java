@@ -1,9 +1,9 @@
 package org.rostik.andrusiv.utils.searchutils;
 
-import org.rostik.andrusiv.utils.sortingutils.Sortable;
+import org.rostik.andrusiv.utils.sortingutils.Sorting;
 
 public class SearchUtil {
-    //TODO DRY
+
     public int binarySearchRecursive(int[] arr, int left, int right, int numberToSearch) {
         if (right >= left) {
             int mid = left + (right - left) / 2;
@@ -31,7 +31,7 @@ public class SearchUtil {
         return -1;
     }
 
-    public int binarySearchIterativeNotSorted(int[] array, int valueToSearch, Sortable sortingUtil) {
+    public int binarySearchIterativeNotSorted(int[] array, int valueToSearch, Sorting sortingUtil) {
         sortingUtil.sort(array);
         return binarySearchIterative(array, valueToSearch);
     }

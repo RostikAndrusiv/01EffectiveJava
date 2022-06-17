@@ -5,21 +5,21 @@ import lombok.Getter;
 import org.rostik.andrusiv.model.Entity;
 
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.StampedLock;
+import java.util.function.Supplier;
 
-//TODO stats in external class
 //TODO books: clean code, clean architecture, refactoring
-
+//TODO read about collections.sort and arrays.sort impl, look how binary search implemented on Java (if exist), difference between primitives and objects sort, memory usage insertion and merge sorting
 
 public class LfuCacheImpl implements LfuCache {
-    //TODO move stats to external class(create methods)
-    //TODO Concurrency (thread scheduling)
     private final Map<Integer, CacheItem> cacheMap = new HashMap<>();
+    private final ScheduledExecutorService ses = Executors.newScheduledThreadPool(1);
 
-    private RemovalListener removalListener;
+    private final RemovalListener removalListener;
 
     private final StampedLock lock = new StampedLock();
 
@@ -46,7 +46,7 @@ public class LfuCacheImpl implements LfuCache {
 
     private void initialize() {
         if (isTimeBased) {
-            new LfuCacheImpl.CleanerThread().start();
+            startCleaningThread();
         }
     }
 
@@ -68,37 +68,28 @@ public class LfuCacheImpl implements LfuCache {
         }
     }
 
-    private class CleanerThread extends Thread {
-        @Override
-        public void run() {
-            while (true) {
-                cleanMap();
-                try {
-                    Thread.sleep(expiryInMillis / 5);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                    Thread.currentThread().interrupt();
-                }
-            }
-        }
+    private void startCleaningThread() {
+        Runnable task = () -> cleanMap();
+        ses.scheduleAtFixedRate(task, expiryInMillis / 5, expiryInMillis / 5, TimeUnit.MILLISECONDS);
+    }
 
-        private void cleanMap() {
-            long stamp = lock.writeLock();
-            try {
-                LocalDateTime currentTime = LocalDateTime.now();
-                for (Map.Entry<Integer, CacheItem> entry : cacheMap.entrySet()) {
-                    if (currentTime.isAfter(entry.getValue().lastAccessTime.plusSeconds(expiryInMillis / 1000))) {
-                        Optional.ofNullable(removalListener)
-                                .ifPresent(listener -> listener.onRemove(entry, RemovalCauseEnum.EXPIRED));
-                        cacheMap.remove(entry.getKey());
-                        numberOfEvictions++;
-                    }
+    private void cleanMap() {
+        long stamp = lock.writeLock();
+        try {
+            LocalDateTime currentTime = LocalDateTime.now();
+            for (Map.Entry<Integer, CacheItem> entry : cacheMap.entrySet()) {
+                if (currentTime.isAfter(entry.getValue().lastAccessTime.plusNanos(expiryInMillis * 1000))) {
+                    Optional.ofNullable(removalListener)
+                            .ifPresent(listener -> listener.onRemove(entry, RemovalCauseEnum.EXPIRED));
+                    cacheMap.remove(entry.getKey());
+                    numberOfEvictions++;
                 }
-            } finally {
-                lock.unlockWrite(stamp);
             }
+        } finally {
+            lock.unlockWrite(stamp);
         }
     }
+
 
     @Override
     public void put(int key, Entity data) {
@@ -141,7 +132,6 @@ public class LfuCacheImpl implements LfuCache {
         }
     }
 
-
     private int getLFUKey() {
         int key = 0;
         int minFreq = Integer.MAX_VALUE;
@@ -159,35 +149,36 @@ public class LfuCacheImpl implements LfuCache {
         averageInsertionTime = (averageInsertionTime * (numberOfTotalInsertedItems - 1) + methodExecutionTime) / numberOfTotalInsertedItems;
     }
 
-    //TODO add lock
     private boolean isFull() {
-        synchronized (cacheMap) {
-            return cacheMap.size() == capacity;
-        }
+        return cacheMap.size() == capacity;
     }
 
-    //TODO add lock
     @Override
     public int size() {
-        synchronized (cacheMap) {
-            return cacheMap.size();
-        }
+        return readLock(cacheMap::size);
     }
 
-    //TODO add lock
     public boolean containsKey(int key) {
-        synchronized (cacheMap) {
-            return cacheMap.containsKey(key);
-        }
+        return readLock(() -> cacheMap.containsKey(key));
     }
 
-    //TODO lock
     public CacheStats getStats() {
+        return readLock(() -> new CacheStats(size(), hitCount, missCount, numberOfEvictions, averageInsertionTime));
+    }
+
+    private void readLock(Runnable action) {
         long stamp = lock.readLock();
         try {
-            //stats
-            int itemsInCache = size();
-            return new CacheStats(itemsInCache, hitCount, missCount, numberOfEvictions, averageInsertionTime);
+            action.run();
+        } finally {
+            lock.unlockRead(stamp);
+        }
+    }
+
+    private <T> T readLock(Supplier<T> action) {
+        long stamp = lock.readLock();
+        try {
+            return action.get();
         } finally {
             lock.unlockRead(stamp);
         }

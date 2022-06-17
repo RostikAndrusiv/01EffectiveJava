@@ -14,7 +14,7 @@ public class MergeSortUtilTest {
 
         int[] expected = Arrays.copyOf(array, array.length);
         Arrays.sort(expected);
-        Sortable sortUtil = new MergeSortingUtil();
+        Sorting sortUtil = new MergeSortingUtil();
         sortUtil.sort(array);
 
         assertEquals(Arrays.toString(expected), Arrays.toString(array));

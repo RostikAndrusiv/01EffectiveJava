@@ -3,9 +3,9 @@ package org.rostik.andrusiv.utils.searchutils;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
-import org.rostik.andrusiv.utils.sortingutils.InsertionSortingUtil;
+import org.rostik.andrusiv.utils.sortingutils.InsertionSorting;
 import org.rostik.andrusiv.utils.sortingutils.MergeSortingUtil;
-import org.rostik.andrusiv.utils.sortingutils.Sortable;
+import org.rostik.andrusiv.utils.sortingutils.Sorting;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -16,18 +16,18 @@ import static org.rostik.andrusiv.TestUtil.TestDataUtil.getArray;
 @RunWith(Parameterized.class)
 public class SearchUtilTest {
 
-    Sortable sortingUtil;
+    Sorting sortingUtil;
 
     SearchUtil searchUtil = new SearchUtil();
 
-    public SearchUtilTest(Sortable sortingUtil){
+    public SearchUtilTest(Sorting sortingUtil){
         this.sortingUtil = sortingUtil;
     }
 
     @Parameterized.Parameters
     public static Collection<Object[]> getParameters() {
         return Arrays.asList(new Object[][] {
-                { new InsertionSortingUtil() },
+                { new InsertionSorting() },
                 { new MergeSortingUtil()}
         });
     }
@@ -45,7 +45,7 @@ public class SearchUtilTest {
         assertEquals(array.length-1, index);
         assertEquals(-1, indexNotExist);
 
-        System.out.println("TimeToExecute: " + timeToExecute);
+        System.out.println("TimeToExecute BinarySearch Iterative: " + timeToExecute);
     }
 
     @Test

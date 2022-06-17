@@ -1,7 +1,7 @@
 package org.rostik.andrusiv.utils.sortingutils;
 
-//TODO rename
-public interface Sortable {
+
+public interface Sorting {
     //TODO return array
     int[] sort(int[] arrayToSort);
 }
